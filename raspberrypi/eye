@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from argparse import ArgumentParser
+from logs.log_manager import *
+from beacons.eye_client import *
+from common.parallel import Thread
+
+
+def start(args):
+    LogManager().start()
+    cli = EyeClient()
+
+    cli.init_tracking(camera=VideoStream.WEBCAM)
+
+    while True:
+        while not cli.is_connected:
+            try:
+                cli.connect()
+                cli.reset_ressources()
+            except:
+                print('Not Connected')
+            sleep(1)
+        sleep(1)
+
+
+
+parser = ArgumentParser()
+subparsers = parser.add_subparsers()
+
+
+server_parser = subparsers.add_parser('start')
+server_parser.set_defaults(func=start)
+
+
+args = parser.parse_args()
+args.func(args)
