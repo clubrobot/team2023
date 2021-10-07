@@ -1,6 +1,6 @@
-# Club Robot INSA Rennes 2021
+# Club Robot INSA Rennes 2022
 
-> Software solution of the 2019/2020 Robotics Club of INSA Rennes
+> Software solution of the 2021/2022 Robotics Club of INSA Rennes
 
 ## How to clone the repository ?
 
