@@ -12,8 +12,8 @@
 
 3. Now, you can clone the repository :
 
-   - https method : `git clone https://github.com/clubrobot/team-2021.git`
-   - ssh method : `git clone git@github.com:clubrobot/team-2021.git`
+   - https method : `git clone https://github.com/clubrobot/team-2022.git`
+   - ssh method : `git clone git@github.com:clubrobot/team-2022.git`
 
 4. Well Done ! The code is now on your computer.
 
