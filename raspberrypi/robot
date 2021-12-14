@@ -10,7 +10,7 @@ from daughter_cards.display import SevenSegments
 from logs.log_manager import *
 import os
 from robots.bornibus.actions.n_action import NAction
-from beahviours.robot_behaviour import RobotBehavior
+from behaviours.robot_behaviour import RobotBehavior
 
 DEV_MODE = True
 MATCH_MODE = False
