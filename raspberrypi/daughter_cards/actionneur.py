@@ -20,9 +20,9 @@ CALIBRATE_ELEVATOR_OPCODE = 0x20
 CALIBRATE_FLAG_OPCODE = 0x21
 
 """
-Cette classe joue le rôle d'une interface entre le raspeberry pi et l'arduino. 
-Elle contient des méthodes relatives à chaque action de l'actionneur. 
-Elle permet au raspeberry pi de demander à l'arduino de réaliser une action via un OPCODE spécifique.
+This class acts as an interface between the raspeberry pi and the arduino.
+It contains methods relating to each action of the actuator.
+It allows the raspeberry pi to ask the arduino to perform an action via a specific OPCODE.
 """
 class Actionneur(Arduino):
 
