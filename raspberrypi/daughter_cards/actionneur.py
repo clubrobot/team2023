@@ -19,7 +19,11 @@ GET_FLAG_POSITION_OPCODE = 0x19
 CALIBRATE_ELEVATOR_OPCODE = 0x20
 CALIBRATE_FLAG_OPCODE = 0x21
 
-
+"""
+Cette classe joue le rôle d'une interface entre le raspeberry pi et l'arduino. 
+Elle contient des méthodes relatives à chaque action de l'actionneur. 
+Elle permet au raspeberry pi de demander à l'arduino de réaliser une action via un OPCODE spécifique.
+"""
 class Actionneur(Arduino):
 
     # def __init__(self, uuid='/dev/arduino/Actionneur'):

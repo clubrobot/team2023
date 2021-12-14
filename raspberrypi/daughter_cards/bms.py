@@ -19,7 +19,11 @@ GET_REMAINING_CAP_OPCODE = 0x0A
 GET_AVERAGE_TIME_EMPTY_OPCODE = 0x0B
 GET_AVERAGE_TIME_FULL_OPCODE = 0x0C
 
-
+"""
+This class acts as an interface between the raspeberry pi and the arduino.
+It contains methods for each action of the Battery Management System. 
+It allows the raspeberry pi to ask the arduino to perform an action via a specific OPCODE.
+"""
 class BMS(SecureArduino):
     _DEFAULT = {GET_RSOC_OPCODE: Deserializer(INT(100))}
 

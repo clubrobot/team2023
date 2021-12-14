@@ -10,7 +10,11 @@ from daughter_cards.arduino import Arduino
 LED_ON_OPCODE = 0x11
 LED_OFF_OPCODE = 0x12
 
-
+"""
+This class acts as an interface between the raspeberry pi and the button card.
+It contains methods for each action of the button management system. 
+It allows the raspeberry pi to ask the card to perform an action via a specific OPCODE.
+"""
 class ButtonCard(Arduino):
     BUTTON_ID = 1
     RED_BUTTON = 3

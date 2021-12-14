@@ -75,7 +75,11 @@ PUREPURSUIT_LOOKAHEAD_ID        = 0xE0
 PUREPURSUIT_LOOKAHEADBIS_ID     = 0xE2
 
 
-
+"""
+This class acts as an interface between the raspeberry pi and the arduino.
+It contains methods for each action of the wheeled base. 
+It allows the raspeberry pi to ask the arduino to perform an action via a specific OPCODE.
+"""
 class WheeledBase(SecureArduino):
 
     _DEFAULT = {
