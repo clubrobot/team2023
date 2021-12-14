@@ -9,6 +9,8 @@ from common.components import Manager, Server
 from daughter_cards.display import SevenSegments
 from logs.log_manager import *
 import os
+from robots.bornibus.actions.n_action import NAction
+from beahviours.robot_behaviour import RobotBehavior
 
 DEV_MODE = True
 MATCH_MODE = False
@@ -41,6 +43,8 @@ def start(args):
         return
 
     try:
+        actionTest=NAction()
+        RobotBehavior.perform(actionTest.procedure)
         auto.start_preparation()
     except Exception as e:
         import traceback
