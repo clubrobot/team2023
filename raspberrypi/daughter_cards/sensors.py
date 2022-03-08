@@ -41,7 +41,9 @@ class Sensors(SecureArduino):
         try:
             self.addTopic(GET_ALL_TOPIC_OPCODE,
                       self.get_all_sensors_handler, "sensors", self.TIMESTEP)
+            print("PASSE SENSORS")
         except:
+            print("ERROR SENSORS")
             pass
 
         self.sensor1 = self.MAX_DIST
@@ -55,6 +57,7 @@ class Sensors(SecureArduino):
 
     @TopicHandler(USHORT, USHORT, USHORT, USHORT, USHORT, USHORT, USHORT, USHORT)
     def get_all_sensors_handler(self, sensor1, sensor2, sensor3, sensor4, sensor5, sensor6, sensor7, sensor8):
+        print("a")
         self.sensor1 = sensor1
         self.sensor2 = sensor2
         self.sensor3 = sensor3
