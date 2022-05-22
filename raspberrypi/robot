@@ -9,7 +9,7 @@ from common.components import Manager, Server
 from daughter_cards.display import SevenSegments
 from logs.log_manager import *
 import os
-from robots.bornibus.actions.n_action import NAction
+
 from behaviours.robot_behaviour import RobotBehavior
 
 DEV_MODE = True
@@ -30,7 +30,7 @@ def start(args):
     from setups.setup_robot_name import ROBOT_ID, BORNIBUS_ID, R128_ID
     if ROBOT_ID == BORNIBUS_ID:
         print("BORNIBUS")
-        from robots.bornibus.bornibus import Bornibus
+        from robots.team2022.team2022Robot import Bornibus
         auto = Bornibus(man, timelimit=100)
 
     elif ROBOT_ID == R128_ID:
@@ -43,8 +43,6 @@ def start(args):
         return
 
     try:
-        actionTest=NAction()
-        RobotBehavior.perform(actionTest.procedure)
         auto.start_preparation()
     except Exception as e:
         import traceback
