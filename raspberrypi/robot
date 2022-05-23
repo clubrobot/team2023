@@ -39,6 +39,7 @@ def start(args):
         auto = R128(man, timelimit=100)
 
     else:
+        print(ROBOT_ID,BORNIBUS_ID)
         print("NOT ON A ROBOT")
         return
 
