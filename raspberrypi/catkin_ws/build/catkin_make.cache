@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/install -G Unix Makefiles
