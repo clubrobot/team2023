@@ -1,41 +1,45 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
+from ctypes.wintypes import BOOL
 import time
 import math
 
+import rospy
 from common.serialutils import Deserializer
 from common.serialtalks import BYTE, LONG, FLOAT
 from daughter_cards.arduino import SecureArduino
-
+from std_msgs.msg import String
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
+from std_msg.msg import tos_data
 
 # Instructions
-SET_VELOCITIES_OPCODE           = 0x10
+SET_VELOCITIES_OPCODE           = "wheelbase/SET_VELOCITIES"
 
-START_PUREPURSUIT_OPCODE        = 0x11
-START_TURNONTHESPOT_OPCODE      = 0x12
+START_PUREPURSUIT_OPCODE        = "wheelbase/START_PUREPURSUIT"
+START_TURNONTHESPOT_OPCODE      = "wheelbase/START_TURNONTHESPOT"
 
-SET_OPENLOOP_VELOCITIES_OPCODE  = 0x13
+SET_OPENLOOP_VELOCITIES_OPCODE  = "wheelbase/SET_OPENLOOP_VELOCITIES"
 
-POSITION_REACHED_OPCODE         = 0x14
+POSITION_REACHED_OPCODE         = "wheelbase/POSITION_REACHED"
 
-SET_POSITION_OPCODE	            = 0x15
-GET_POSITION_OPCODE	            = 0x16
-GET_VELOCITIES_OPCODE           = 0x17
+SET_POSITION_OPCODE	            = "wheelbase/SET_POSITION"
+GET_POSITION_OPCODE	            = "wheelbase/GET_POSITION"
+GET_VELOCITIES_OPCODE           = "wheelbase/GET_VELOCITIES"
 
-SET_PARAMETER_VALUE_OPCODE      = 0x18
-GET_PARAMETER_VALUE_OPCODE      = 0x19
+SET_PARAMETER_VALUE_OPCODE      = "wheelbase/SET_PARAMETER_VALUE"
+GET_PARAMETER_VALUE_OPCODE      = "wheelbase/GET_PARAMETER_VALUE"
 
-RESET_PUREPURSUIT_OPCODE        = 0x1A
-ADD_PUREPURSUIT_WAYPOINT_OPCODE = 0x1B
+RESET_PUREPURSUIT_OPCODE        = "wheelbase/RESET_PUREPURSUIT"
+ADD_PUREPURSUIT_WAYPOINT_OPCODE = "wheelbase/ADD_PUREPURSUIT_WAYPOINT"
 
-GET_CODEWHEELS_COUNTERS_OPCODE  = 0x1C
-GET_VELOCITIES_WANTED_OPCODE    = 0x1D
-GOTO_DELTA_OPCODE               = 0x1E
-RESET_PARAMETERS_OPCODE         = 0x1F
-SAVE_PARAMETERS_OPCODE          = 0x20
+GET_CODEWHEELS_COUNTERS_OPCODE  = "wheelbase/GET_CODEWHEELS_COUNTERS"
+GET_VELOCITIES_WANTED_OPCODE    = "wheelbase/GET_VELOCITIES_WANTED"
+GOTO_DELTA_OPCODE               = "wheelbase/GOTO_DELTA"
+RESET_PARAMETERS_OPCODE         = "wheelbase/RESET_PARAMETERS"
+SAVE_PARAMETERS_OPCODE          = "wheelbase/SAVE_PARAMETERS"
 
-START_TURNONTHESPOT_DIR_OPCODE = 0x21
+START_TURNONTHESPOT_DIR_OPCODE = "wheelbase/START_TURNONTHESPOT_DIR"
 
 LEFTWHEEL_RADIUS_ID	            = 0x10
 LEFTWHEEL_CONSTANT_ID           = 0x11
@@ -109,7 +113,7 @@ class WheeledBase(SecureArduino):
     def __init__(self, parent, uuid='wheeledbase'):
         SecureArduino.__init__(self, parent, uuid, WheeledBase._DEFAULT)
 
-        self.left_wheel_radius              = WheeledBase.Parameter(self, LEFTWHEEL_RADIUS_ID, FLOAT)
+        """self.left_wheel_radius              = WheeledBase.Parameter(self, LEFTWHEEL_RADIUS_ID, FLOAT)
         self.left_wheel_constant            = WheeledBase.Parameter(self, LEFTWHEEL_CONSTANT_ID, FLOAT)
         self.left_wheel_maxPWM              = WheeledBase.Parameter(self, LEFTWHEEL_MAXPWM_ID, FLOAT)
 
@@ -155,7 +159,27 @@ class WheeledBase(SecureArduino):
         self.theta                          = 0
         self.previous_measure               = 0
         self.direction = self.NO_DIR
-        self.final_angle = 0
+        self.final_angle = 0"""
+
+        self.publisher_set_velocities=rospy.Publisher(SET_VELOCITIES_OPCODE,Vector3,queue_size=10)
+        self.publisher_set_openloop_velocities=rospy.Publisher(SET_OPENLOOP_VELOCITIES_OPCODE,Vector3,queue_size=10)
+        self.publisher_set_position=rospy.Publisher(SET_POSITION_OPCODE,Vector3,queue_size=10)
+        
+        self.publisher_goto_delta=rospy.Publisher(GOTO_DELTA_OPCODE,Vector3,queue_size=10)
+        
+
+        self.publisher_start_turnonthespot=rospy.Publisher(START_TURNONTHESPOT_OPCODE,tos_data)
+        self.publisher_start_turnonthespot_dir=rospy.Publisher(START_TURNONTHESPOT_DIR_OPCODE,tos_data)
+
+        self.publisher_reset_parameters=rospy.Publisher(RESET_PARAMETERS_OPCODE,String)
+        self.publisher_save_parameters=rospy.Publisher(SAVE_PARAMETERS_OPCODE,String)
+
+        self.publisher_add_purepursuit_waypoint=rospy.Publisher(ADD_PUREPURSUIT_WAYPOINT_OPCODE,Vector3,queue_size=10)
+        
+        self.publisher_start_purepursuit=rospy.Publisher(START_PUREPURSUIT_OPCODE,tos_data)
+         
+
+        (SET_PARAMETER_VALUE_OPCODE)
 
         self.latch = None
         self.latch_time = None
@@ -176,7 +200,10 @@ class WheeledBase(SecureArduino):
             raise ValueError('not enough waypoints')
         self.send(RESET_PUREPURSUIT_OPCODE)
         for x, y in waypoints:
-            self.send(ADD_PUREPURSUIT_WAYPOINT_OPCODE, FLOAT(x), FLOAT(y))
+            vec=Vector3()
+            vec.x=x
+            vec.y=y
+            self.publisher_add_purepursuit_waypoint(vec)
         if lookahead is not None:
             self.set_parameter_value(PUREPURSUIT_LOOKAHEAD_ID, lookahead, FLOAT)
         if lookaheadbis is not None:
@@ -192,14 +219,22 @@ class WheeledBase(SecureArduino):
         self.send(START_PUREPURSUIT_OPCODE, BYTE({'forward':0, 'backward':1}[direction]), FLOAT(finalangle))
 
     def start_purepursuit(self):
-        self.send(START_PUREPURSUIT_OPCODE, BYTE({self.NO_DIR:0, self.FORWARD:0, self.BACKWARD:1}[self.direction]),
-                  FLOAT(self.final_angle))
+        data=tos_data()
+        data.angle=self.final_angle
+        data.modalite={self.NO_DIR:0, self.FORWARD:0, self.BACKWARD:1}[self.direction]
+        self.publisher_start_purepursuit(data)
 
     def turnonthespot(self, theta, direction=None, way='forward'):
         if direction is None:
-            self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta), BYTE({'forward':0, 'backward':1}[way]))
+            data=tos_data()
+            data.angle=theta
+            data.modalite={'forward':False, 'backward':True}[way]
+            self.publisher_start_turnonthespot(data)
         else:
-            self.send(START_TURNONTHESPOT_DIR_OPCODE, FLOAT(theta), BYTE({'clock':0, 'trig':1}[direction]))
+            data=tos_data()
+            data.angle=theta
+            data.modalite={'clock':False, 'trig':True}[direction]
+            self.publisher_start_turnonthespot_dir(data)
 
     def isarrived(self, **kwargs):
         output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
@@ -222,7 +257,10 @@ class WheeledBase(SecureArduino):
                 time.sleep(timestep)
 
     def goto_delta(self, x, y):
-        self.send(GOTO_DELTA_OPCODE, FLOAT(x) + FLOAT(y))
+        vec=Vector3()
+        vec.x=x
+        vec.y=y
+        self.publisher_goto_delta(vec)
 
     def goto(self, x, y, theta=None, direction=None, finalangle=None, lookahead=None, lookaheadbis=None, linvelmax=None, angvelmax=None, **kwargs):
         # Compute the preferred direction if not set
@@ -246,7 +284,12 @@ class WheeledBase(SecureArduino):
         self.set_openloop_velocities(0, 0)
 
     def set_position(self, x, y, theta):
-        self.send(SET_POSITION_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
+        vec=Vector3()
+        vec.x=x
+        vec.y=y
+        vec.z=theta
+        self.publisher_set_position.publish(vec)
+        
 
     def reset(self):
         self.set_position(0, 0, 0)
@@ -283,7 +326,9 @@ class WheeledBase(SecureArduino):
         return value
 
     def reset_parameters(self):
-        self.send(RESET_PARAMETERS_OPCODE)
+        self.publisher_reset_parameters.publish("reset")
+        
 
     def save_parameters(self):
-        self.send(SAVE_PARAMETERS_OPCODE)
+        self.publisher_save_parameters.publish("save")
+        

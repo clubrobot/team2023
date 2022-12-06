@@ -131,6 +131,7 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/build/gtest/cmake_install.cmake")
+  include("/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/build/raspberry/cmake_install.cmake")
 
 endif()
 

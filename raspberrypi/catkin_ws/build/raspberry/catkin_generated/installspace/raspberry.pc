@@ -1,0 +1,8 @@
+prefix=/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/install
+
+Name: raspberry
+Description: Description of raspberry
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: roscpp rospy std_msgs
