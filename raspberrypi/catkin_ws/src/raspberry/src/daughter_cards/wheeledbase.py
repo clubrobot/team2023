@@ -216,12 +216,16 @@ class WheeledBase(SecureArduino):
             finalangle = math.atan2(waypoints[-1][1] - waypoints[-2][1], waypoints[-1][0] - waypoints[-2][0])
         self.direction = {'forward':self.FORWARD, 'backward':self.BACKWARD}[direction]
         self.final_angle = finalangle
-        self.send(START_PUREPURSUIT_OPCODE, BYTE({'forward':0, 'backward':1}[direction]), FLOAT(finalangle))
+        data=tos_data()
+        data.angle=self.final_angle
+        data.modalite={self.NO_DIR:False, self.FORWARD:False, self.BACKWARD:True}[self.direction]
+        self.publisher_start_purepursuit(data)
+
 
     def start_purepursuit(self):
         data=tos_data()
         data.angle=self.final_angle
-        data.modalite={self.NO_DIR:0, self.FORWARD:0, self.BACKWARD:1}[self.direction]
+        data.modalite={self.NO_DIR:False, self.FORWARD:False, self.BACKWARD:True}[self.direction]
         self.publisher_start_purepursuit(data)
 
     def turnonthespot(self, theta, direction=None, way='forward'):
