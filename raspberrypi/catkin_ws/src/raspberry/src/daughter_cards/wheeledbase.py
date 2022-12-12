@@ -24,17 +24,20 @@ SET_OPENLOOP_VELOCITIES_OPCODE  = "wheelbase/SET_OPENLOOP_VELOCITIES"
 POSITION_REACHED_OPCODE         = "wheelbase/POSITION_REACHED"
 
 SET_POSITION_OPCODE	            = "wheelbase/SET_POSITION"
-GET_POSITION_OPCODE	            = "wheelbase/GET_POSITION"
-GET_VELOCITIES_OPCODE           = "wheelbase/GET_VELOCITIES"
+
 
 SET_PARAMETER_VALUE_OPCODE      = "wheelbase/SET_PARAMETER_VALUE"
 GET_PARAMETER_VALUE_OPCODE      = "wheelbase/GET_PARAMETER_VALUE"
 
-RESET_PUREPURSUIT_OPCODE        = "wheelbase/RESET_PUREPURSUIT"
-ADD_PUREPURSUIT_WAYPOINT_OPCODE = "wheelbase/ADD_PUREPURSUIT_WAYPOINT"
+GET_POSITION_OPCODE	            = "wheelbase/GET_POSITION"
+GET_VELOCITIES_OPCODE           = "wheelbase/GET_VELOCITIES"
 
 GET_CODEWHEELS_COUNTERS_OPCODE  = "wheelbase/GET_CODEWHEELS_COUNTERS"
 GET_VELOCITIES_WANTED_OPCODE    = "wheelbase/GET_VELOCITIES_WANTED"
+
+RESET_PUREPURSUIT_OPCODE        = "wheelbase/RESET_PUREPURSUIT"
+ADD_PUREPURSUIT_WAYPOINT_OPCODE = "wheelbase/ADD_PUREPURSUIT_WAYPOINT"
+
 GOTO_DELTA_OPCODE               = "wheelbase/GOTO_DELTA"
 RESET_PARAMETERS_OPCODE         = "wheelbase/RESET_PARAMETERS"
 SAVE_PARAMETERS_OPCODE          = "wheelbase/SAVE_PARAMETERS"
@@ -176,29 +179,61 @@ class WheeledBase(SecureArduino):
 
         self.publisher_add_purepursuit_waypoint=rospy.Publisher(ADD_PUREPURSUIT_WAYPOINT_OPCODE,Vector3,queue_size=10)
         
+        self.publisher_reset_purepursuit=rospy.Publisher(RESET_PUREPURSUIT_OPCODE,String,queue_size=10)
+        
         self.publisher_start_purepursuit=rospy.Publisher(START_PUREPURSUIT_OPCODE,tos_data)
          
+        self.codewheel_counter = 0
+        rospy.Subscriber(GET_CODEWHEELS_COUNTERS_OPCODE, Vector3, self.callback_codewheels_counter)
+        
+        self.position = 0
+        rospy.Subscriber(GET_POSITION_OPCODE, Vector3, self.callback_position)
+        
+        self.velocities = 0
+        rospy.Subscriber(GET_VELOCITIES_OPCODE, Vector3, self.callback_velocities)
+        
+        self.velocities_wanted = 0
+        rospy.Subscriber(GET_VELOCITIES_WANTED_OPCODE, Vector3, self.callback_velocities_wanted)
+        
+        self.position_reached=0
+        rospy.Subscriber(POSITION_REACHED_OPCODE, Vector3, self.callback_position_reached)
+        
+        
 
-        (SET_PARAMETER_VALUE_OPCODE)
+        #GET_PARAMETER_VALUE_OPCODE      = "wheelbase/GET_PARAMETER_VALUE"
+        # (SET_PARAMETER_VALUE_OPCODE)
 
         self.latch = None
         self.latch_time = None
 
+    def set_parameter_value(self, id, value, valuetype):
+        self.send(SET_PARAMETER_VALUE_OPCODE, BYTE(id), valuetype(value))
+        time.sleep(0.01)
+
+    def get_parameter_value(self, id, valuetype):
+        output = self.execute(GET_PARAMETER_VALUE_OPCODE, BYTE(id))
+        value = output.read(valuetype)
+        return value
+
     def set_openloop_velocities(self, left, right):
-        self.send(SET_OPENLOOP_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
+        self.publisher_set_openloop_velocities.publish(Vector3(left,right,0))
+
+
+    def callback_codewheels_counter(self,data):
+        self.codewheel_counter=data[0:1]
+
 
     def get_codewheels_counter(self, **kwargs):
-        output = self.execute(GET_CODEWHEELS_COUNTERS_OPCODE, **kwargs)
-        left, right = output.read(LONG, LONG)
-        return left, right
+        return self.codewheel_counter[0], self.codewheel_counter[1]
 
     def set_velocities(self, linear_velocity, angular_velocity):
-        self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
+        self.publisher_set_velocities.publish(Vector3(linear_velocity,angular_velocity,0))
 
     def purepursuit(self, waypoints, direction='forward', finalangle=None, lookahead=None, lookaheadbis=None, linvelmax=None, angvelmax=None, **kwargs):
         if len(waypoints) < 2:
             raise ValueError('not enough waypoints')
-        self.send(RESET_PUREPURSUIT_OPCODE)
+        
+        self.publisher_reset_purepursuit.publish("reset")
         for x, y in waypoints:
             vec=Vector3()
             vec.x=x
@@ -240,16 +275,21 @@ class WheeledBase(SecureArduino):
             data.modalite={'clock':False, 'trig':True}[direction]
             self.publisher_start_turnonthespot_dir(data)
 
+    def callback_position_reached(self,data):
+        self.position_reached=data[1:2]
+
     def isarrived(self, **kwargs):
-        output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
-        isarrived, spinurgency = output.read(BYTE, BYTE)
+        isarrived, spinurgency = self.position_reached
         if bool(spinurgency):
             raise RuntimeError('spin urgency')
         return bool(isarrived)
 
-    def get_velocities_wanted(self,real_output=False):
-        output = self.execute(GET_VELOCITIES_WANTED_OPCODE,BYTE(int(real_output)))
-        return output.read(FLOAT, FLOAT)
+    def callback_velocities_wanted(self,data):
+        self.velocities_wanted=data[0:1]
+
+    def get_velocities_wanted(self, **kwargs):
+        return self.velocities_wanted[0], self.velocities_wanted[1]
+
 
     def wait(self, timestep=0.1, timeout=200, command=None, **kwargs):
         init_time = time.time()
@@ -298,9 +338,11 @@ class WheeledBase(SecureArduino):
     def reset(self):
         self.set_position(0, 0, 0)
 
+    def callback_position(self,data):
+        self.position=data
+
     def get_position(self, **kwargs):
-        output = self.execute(GET_POSITION_OPCODE, **kwargs)
-        self.x, self.y, self.theta = output.read(FLOAT, FLOAT, FLOAT)
+        self.x, self.y, self.theta = self.position
         self.previous_measure = time.time()
         return self.x, self.y, self.theta
 
@@ -315,19 +357,12 @@ class WheeledBase(SecureArduino):
             self.get_position()
         return self.x, self.y, self.theta
 
+    def callback_velocities(self,data):
+        self.velocities=data[1:2]
+
     def get_velocities(self, **kwargs):
-        output = self.execute(GET_VELOCITIES_OPCODE, **kwargs)
-        linvel, angvel = output.read(FLOAT, FLOAT)
+        linvel, angvel = self.velocities
         return linvel, angvel
-
-    def set_parameter_value(self, id, value, valuetype):
-        self.send(SET_PARAMETER_VALUE_OPCODE, BYTE(id), valuetype(value))
-        time.sleep(0.01)
-
-    def get_parameter_value(self, id, valuetype):
-        output = self.execute(GET_PARAMETER_VALUE_OPCODE, BYTE(id))
-        value = output.read(valuetype)
-        return value
 
     def reset_parameters(self):
         self.publisher_reset_parameters.publish("reset")
