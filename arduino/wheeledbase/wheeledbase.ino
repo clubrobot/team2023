@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#include <ros.h>
 #include "PIN.h"
 #include "constants.h"
 #include "instructions.h"
@@ -41,7 +41,7 @@ PurePursuit purePursuit;
 TurnOnTheSpot turnOnTheSpot;
 
 // Setup
-
+ros::NodeHandle nh;
 void setup()
 {
     // Communication
@@ -126,6 +126,7 @@ void setup()
 
 void loop()
 {
+    nh.spinOnce();
     talks.execute();
 
     // Update odometry

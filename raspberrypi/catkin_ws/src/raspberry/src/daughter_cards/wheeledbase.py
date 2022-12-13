@@ -116,7 +116,7 @@ class WheeledBase(SecureArduino):
     def __init__(self, parent, uuid='wheeledbase'):
         SecureArduino.__init__(self, parent, uuid, WheeledBase._DEFAULT)
 
-        """self.left_wheel_radius              = WheeledBase.Parameter(self, LEFTWHEEL_RADIUS_ID, FLOAT)
+        self.left_wheel_radius              = WheeledBase.Parameter(self, LEFTWHEEL_RADIUS_ID, FLOAT)
         self.left_wheel_constant            = WheeledBase.Parameter(self, LEFTWHEEL_CONSTANT_ID, FLOAT)
         self.left_wheel_maxPWM              = WheeledBase.Parameter(self, LEFTWHEEL_MAXPWM_ID, FLOAT)
 
@@ -162,7 +162,7 @@ class WheeledBase(SecureArduino):
         self.theta                          = 0
         self.previous_measure               = 0
         self.direction = self.NO_DIR
-        self.final_angle = 0"""
+        self.final_angle = 0
 
         self.publisher_set_velocities=rospy.Publisher(SET_VELOCITIES_OPCODE,Vector3,queue_size=10)
         self.publisher_set_openloop_velocities=rospy.Publisher(SET_OPENLOOP_VELOCITIES_OPCODE,Vector3,queue_size=10)
@@ -182,6 +182,8 @@ class WheeledBase(SecureArduino):
         self.publisher_reset_purepursuit=rospy.Publisher(RESET_PUREPURSUIT_OPCODE,String,queue_size=10)
         
         self.publisher_start_purepursuit=rospy.Publisher(START_PUREPURSUIT_OPCODE,tos_data)
+        
+        self.publisher_set_parameter_value=rospy.Publisher(SET_PARAMETER_VALUE_OPCODE,Vector3)
          
         self.codewheel_counter = 0
         rospy.Subscriber(GET_CODEWHEELS_COUNTERS_OPCODE, Vector3, self.callback_codewheels_counter)
@@ -198,22 +200,27 @@ class WheeledBase(SecureArduino):
         self.position_reached=0
         rospy.Subscriber(POSITION_REACHED_OPCODE, Vector3, self.callback_position_reached)
         
-        
+        self.parameter=0
+        rospy.Subscriber(POSITION_REACHED_OPCODE, Vector3, self.callback_position_reached)
 
         #GET_PARAMETER_VALUE_OPCODE      = "wheelbase/GET_PARAMETER_VALUE"
-        # (SET_PARAMETER_VALUE_OPCODE)
+        
 
         self.latch = None
         self.latch_time = None
 
     def set_parameter_value(self, id, value, valuetype):
-        self.send(SET_PARAMETER_VALUE_OPCODE, BYTE(id), valuetype(value))
+        self.publisher_set_parameter_value.publish(Vector3(id,value,valuetype))
         time.sleep(0.01)
 
+    #A REFAIRE
+    #def get_parameter_value(self, id, valuetype):
+        #output = self.execute(GET_PARAMETER_VALUE_OPCODE, BYTE(id))
+        #value = output.read(valuetype)
+        #return value
+
     def get_parameter_value(self, id, valuetype):
-        output = self.execute(GET_PARAMETER_VALUE_OPCODE, BYTE(id))
-        value = output.read(valuetype)
-        return value
+        return None
 
     def set_openloop_velocities(self, left, right):
         self.publisher_set_openloop_velocities.publish(Vector3(left,right,0))

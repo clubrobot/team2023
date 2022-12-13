@@ -13,6 +13,9 @@
 #include "../common/TurnOnTheSpot.h"
 #include "../common/mathutils.h"
 #include <math.h>
+#include <ros.h>
+#include <geometry_msgs/Vector3.h>
+#include <std_msgs/String.h>
 
 // Global variables
 
@@ -45,16 +48,16 @@ void DISABLE(SerialTalks& talks, Deserializer& input, Serializer& output)
 	leftWheel .setVelocity(0);
 	rightWheel.setVelocity(0);
 }
-
-void GOTO_DELTA(SerialTalks& talks, Deserializer& input, Serializer& output)
+ros::Subscriber<geometry_msgs::Vector3> sub_goto_delta(GOTO_DELTA_OPCODE, &GOTO_DELTA);
+void GOTO_DELTA(const geometry_msgs::Vector3& input)
 {
 	purePursuit.reset();
 	positionControl.disable();
 
 	Position initial_pos =  odometry.getPosition();
 
-	float dx = input.read<float>();
-	float dy = input.read<float>();
+	float dx = input->x;
+	float dy = input->y;
 
 	Position target_pos;
 	target_pos.x = initial_pos.x + dx*cos(initial_pos.theta)    + dy*-1*sin(initial_pos.theta);
@@ -87,10 +90,11 @@ void GOTO_DELTA(SerialTalks& talks, Deserializer& input, Serializer& output)
 
 }
 
-void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
+ros::Subscriber<geometry_msgs::Vector3> sub_openloop_velocities(SET_OPENLOOP_VELOCITIES_OPCODE, &SET_OPENLOOP_VELOCITIES);
+void SET_OPENLOOP_VELOCITIES(const geometry_msgs::Vector3& input)
 {
-	float leftWheelVel  = input.read<float>();
-	float rightWheelVel = input.read<float>();
+	float leftWheelVel  = input->x;
+	float rightWheelVel = input->y;
 
 	velocityControl.disable();
 	positionControl.disable();
@@ -106,17 +110,19 @@ void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer
 	output.write<long>(leftCodewheelCounter);
 	output.write<long>(rightCodewheelCounter);
 }
-
-void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
+ros::Subscriber<geometry_msgs::Vector3> sub_openloop_velocities(SET_VELOCITIES_OPCODE, &SET_VELOCITIES);
+void SET_VELOCITIES(const geometry_msgs::Vector3& input)
 {
-	float linVelSetpoint = input.read<float>();
-	float angVelSetpoint = input.read<float>();
+	float linVelSetpoint = input->x;
+	float angVelSetpoint = input->y;
 	positionControl.disable();
 	velocityControl.enable();
 	velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
-void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
+
+ros::Subscriber<std_msgs::String> sub_openloop_velocities(RESET_PUREPURSUIT_OPCODE, &RESET_PUREPURSUIT);
+void RESET_PUREPURSUIT(const std_msgs::String& input)
 {
 	purePursuit.reset();
 	positionControl.disable();
@@ -143,12 +149,12 @@ void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 	positionControl.setMoveStrategy(purePursuit);
 	positionControl.enable();
 }
-
-void ADD_PUREPURSUIT_WAYPOINT(SerialTalks& talks, Deserializer& input, Serializer& output)
+ros::Subscriber<geometry_msgs::Vector3> sub_openloop_velocities(ADD_PUREPURSUIT_WAYPOINT_OPCODE, &ADD_PUREPURSUIT_WAYPOINT);
+void ADD_PUREPURSUIT_WAYPOINT(const geometry_msgs::Vector3& input)
 {
 	// Queue waypoint
-	float x = input.read<float>();
-	float y = input.read<float>();
+	float x = input->x;
+	float y = input->y;
 	purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
 }
 
@@ -211,12 +217,12 @@ void GET_VELOCITIES_WANTED(SerialTalks& talks, Deserializer& input, Serializer& 
 	}
 }
 
-
-void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
+ros::Subscriber<geometry_msgs::Vector3> sub_openloop_velocities(SET_POSITION_OPCODE, &SET_POSITION);
+void SET_POSITION(const geometry_msgs::Vector3& input)
 {
-	float x     = input.read<float>();
-	float y     = input.read<float>();
-	float theta = input.read<float>();
+	float x     = input->x;
+	float y     = input->y;
+	float theta = input->z;
 
 	odometry.setPosition(x, y, theta);
 }
