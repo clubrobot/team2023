@@ -1,4 +1,4 @@
 .vscode/
 bin/
-raspberrypi/catkin_ws/devel/**
-raspberrypi/catkin_ws/build/**
+#raspberrypi/catkin_ws/devel/**
+#raspberrypi/catkin_ws/build/**
