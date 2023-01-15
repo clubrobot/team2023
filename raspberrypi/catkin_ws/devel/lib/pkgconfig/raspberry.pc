@@ -1,8 +1,0 @@
-prefix=/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/devel
-
-Name: raspberry
-Description: Description of raspberry
-Version: 0.0.0
-Cflags: -I/home/leproblemededmn/CRobot/team2023/team2023/raspberrypi/catkin_ws/devel/include
-Libs: -L${prefix}/lib 
-Requires: roscpp rospy std_msgs
