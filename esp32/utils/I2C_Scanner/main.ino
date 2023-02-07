@@ -3,7 +3,7 @@
 
 void setup()
 {
-    Wire.begin();
+    Wire.begin(2, 4); //SDA SCL
     pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
     Serial.begin(115200);

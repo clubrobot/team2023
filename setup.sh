@@ -13,9 +13,9 @@ else
 	REPOSITORY="$(cd "$(dirname "$(readlink "$BASH_SOURCE")")"; pwd)"
 fi
 
-PROFILE="$HOME/.profile"
-BASHRC="$HOME/.bashrc"
-ZSHRC="$HOME/.zshrc"
+PROFILE="/home/boris/.profile"
+BASHRC="/home/boris/.bashrc"
+ZSHRC="/home/boris/.zshrc"
 # Download and install Aduino IDE if it is not already installed
 
 if [ -z "$ARDUINO_DIR" ]; then # ifndef ARDUINO_DIR
@@ -73,19 +73,19 @@ if [ -z "$ARDUINO_DIR" ]; then # ifndef ARDUINO_DIR
 		pkill -n Arduino
 	fi
 fi # ifndef ARDUINO_DIR
-
+ARDUINO_DIR = "/opt/arduino-1.6.12/"
 # Install ESP-32 driver for Arduino IDE
 if  [ -z "$ESP_ROOT" ] ; then
     if [ "$(uname -s)" = 'Linux' ] ; then
-        mkdir "$ARDUINO_DIR/hardware/espressif"
-        cd  "$ARDUINO_DIR/hardware/espressif"
+        mkdir "/opt/arduino-1.6.12/hardware/espressif"
+        cd  "/opt/arduino-1.6.12/hardware/espressif"
         git clone https://github.com/espressif/arduino-esp32.git esp32
         cd esp32
         git submodule update --init --recursive && \
         cd tools
         python get.py
 
-        echo export ESP_ROOT="$ARDUINO_DIR/hardware/espressif/esp32" >> "$PROFILE"
+        echo export ESP_ROOT="/opt/arduino-1.6.12/hardware/espressif/esp32" >> "$PROFILE"
         echo export PYTHONPATH="$REPOSITORY/raspberrypi/:\$PYTHONPATH" >> "$BASHRC"
 
     else

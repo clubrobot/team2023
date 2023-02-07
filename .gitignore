@@ -1,4 +1,3 @@
 .vscode/
 bin/
-raspberrypi/catkin_ws/devel/**
-raspberrypi/catkin_ws/build/**
+arduino-1.6.12

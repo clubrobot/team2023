@@ -10,7 +10,7 @@ from listeners.sensor_listener import SensorListener
 
 
 # Connect to the Raspberry Pi and the different modules
-manager = Manager("10.0.0.4")
+manager = Manager("10.0.0.7")
 manager.connect(7)
 
 
